@@ -1,8 +1,3 @@
-/* styles.css — v2 “premium” (drop-in replacement)
-   Mantiene tu look & feel (dark + verde), mejora consistencia, tipografía, escalas,
-   accesibilidad y performance. NO requiere cambios de HTML.
-*/
-
 /* =========================================
    0) Design Tokens
 ========================================= */
@@ -643,9 +638,21 @@ h1 {
 }
 
 .price {
-  font-weight: 780;
-  opacity: 0.96;
-  letter-spacing: 0.01em;
+  font-weight: 800;
+  color: var(--text);
+  /* El brillo sutil que pediste */
+  text-shadow: 0 0 12px rgba(60, 140, 100, 0.5); 
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  font-size: 16px;
+}
+
+/* En mobile lo hacemos un poco más grande para legibilidad */
+@media (max-width: 640px) {
+  .menuItem .price {
+    font-size: 18px;
+    text-shadow: 0 0 15px rgba(60, 140, 100, 0.6);
+  }
 }
 
 .quick {
@@ -1078,38 +1085,32 @@ h1 {
 
 
 /* =========================================
-   IMÁGENES DE PLATOS – TAMAÑO VISUAL UNIFORME
+   IMÁGENES - ZOOM FLUIDO
    ========================================= */
-
-/* Contenedor con ratio fijo */
 .menuItem .imageWrap {
   width: 100%;
-  aspect-ratio: 4 / 3;     /* estándar food */
-  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  overflow: hidden; /* 🔑 Corta el exceso del zoom */
   border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(0,0,0,0.25);
+  isolation: isolate;
 }
 
-/* Imagen SIEMPRE llena el frame */
 .menuItem .dishImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;       /* 🔑 recorta */
-  object-position: center; /* foco centrado */
+  object-fit: cover;
+  object-position: center;
   display: block;
+  /* Estado inicial: un poco más de escala para evitar bordes blancos */
+  transform: scale(1.05); 
+  transition: transform 0.6s var(--ease), filter 0.6s var(--ease);
 }
 
-/* Ajuste fino para imágenes con fondo blanco (como bagels) */
-.menuItem .dishImage {
-  background-color: transparent;
-  transform: scale(1.12);         /* ✅ FIX: era scale+(...) */
-  transition: transform 0.4s ease; /* suave también sin hover */
-  will-change: transform;          /* perf */
-}
-
-/* Hover premium */
 .menuItem:hover .dishImage {
-  transform: scale(1.16);
+  transform: scale(1.15); /* Zoom elegante */
+  filter: brightness(1.1); /* Sutil aclarado al enfocar */
 }
 
 
@@ -1148,7 +1149,7 @@ h1 {
 
 
 /* =========================================================
-   MOBILE NAV + HEADER (BLOQUE ÚNICO Y DEFINITIVO)
+   MOBILE NAV + HEADER
    - Popover compacto (no tapa "Carta")
    - Tap afuera cierra (con backdrop)
    - Sin scroll horizontal
@@ -1167,7 +1168,6 @@ html, body {
 }
 
 /* ---- Base (desktop) ---- */
-/* (No tocamos tu desktop: el nav__toggle y backdrop se ocultan por defecto) */
 .nav__toggle { display: none; }
 .nav__backdrop { display: none; }
 
@@ -1412,13 +1412,14 @@ body.nav-open { overflow: hidden; } /* cuando abre, bloquea scroll */
 }
 
 /* =========================================
-   15) Estado: Sin Stock / Agotado
+   15) ESTADO: SIN STOCK / AGOTADO (REFINADO)
    ========================================= */
 .menuItem.no-stock {
-  opacity: 0.6;
-  filter: grayscale(1); /* Foto en blanco y negro */
-  pointer-events: none; /* No se puede clickear */
+  opacity: 0.5;
+  filter: grayscale(0.9) contrast(0.8);
+  pointer-events: none;
   position: relative;
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .menuItem.no-stock::after {
@@ -1426,19 +1427,26 @@ body.nav-open { overflow: hidden; } /* cuando abre, bloquea scroll */
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(-8deg);
+  transform: translate(-50%, -50%) rotate(-5deg);
   
-  background: rgba(0, 0, 0, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  color: #fff;
-  padding: 6px 12px;
-  border-radius: 8px;
+  /* Uso de tus colores: fondo oscuro + texto verde acento */
+  background: var(--paper); 
+  border: 1px solid var(--accent2);
+  color: var(--accent2);
   
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.15em;
-  backdrop-filter: blur(4px);
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
   z-index: 10;
+}
+
+/* Evitamos que el brillo esmeralda se vea en items agotados */
+.menuItem.no-stock .price {
+  text-shadow: none;
+  opacity: 0.5;
 }
 
 /* =========================================
@@ -1489,4 +1497,20 @@ body.nav-open { overflow: hidden; } /* cuando abre, bloquea scroll */
     font-weight: bold;
     color: #000 !important;
   }
+}
+
+/* Capa que hará el efecto de fundido a negro */
+.hero__overlay-fade {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg); /* Usa tu color #070a0d */
+  opacity: 0; /* Empieza invisible */
+  z-index: 1; /* Por encima de las imágenes, debajo del texto */
+  pointer-events: none;
+  will-change: opacity;
+}
+
+/* Ajustamos el z-index del contenido para que siempre esté arriba */
+.hero__content {
+  z-index: 2;
 }

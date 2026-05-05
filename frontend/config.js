@@ -30,6 +30,8 @@ window.SITE_CONFIG = {
 
   api: {
     // Apuntamos a tu servidor local
-    baseUrl: "http://localhost:3000/api/menu"
+    baseUrl: "http://localhost:3000/api/menu",
+    authUrl:   "http://localhost:3000/api/auth",
+    uploadUrl: "http://localhost:3000/api/upload"
   }
 };

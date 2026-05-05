@@ -209,27 +209,55 @@
   <script src="config.js"></script>
   
   <script>
-    const ADMIN_PIN = "1433"; 
     let menuData = null;
     let hasChanges = false;
 
-    const notify = (text, type = "success") => {
-      Toastify({
-        text: text, duration: 3000, gravity: "top", position: "center",
-        style: { 
-          background: type === "success" ? "rgba(16, 185, 129, 0.95)" : "rgba(255, 94, 87, 0.95)", 
-          backdropFilter: "blur(10px)", borderRadius: "16px", fontWeight: "700",
-          boxShadow: "0 15px 30px rgba(0,0,0,0.3)", padding: "12px 24px"
-        }
-      }).showToast();
-    };
+const authHeaders = () => ({
+  "Content-Type": "application/json",
+  "Authorization": `Bearer ${sessionStorage.getItem('adminToken')}`
+});
 
-    document.getElementById("pinBtn").onclick = () => {
-      if(document.getElementById("pinInput").value === ADMIN_PIN) {
-        document.getElementById("pinOverlay").style.display = "none";
-        notify("Identidad Verificada");
-      } else { notify("PIN No Válido", "error"); }
-    };
+const notify = (text, type = "success") => {
+  Toastify({
+    text: text, duration: 3000, gravity: "top", position: "center",
+    style: {
+      background: type === "success" ? "rgba(16, 185, 129, 0.95)" : "rgba(255, 94, 87, 0.95)",
+      backdropFilter: "blur(10px)", borderRadius: "16px", fontWeight: "700",
+      boxShadow: "0 15px 30px rgba(0,0,0,0.3)", padding: "12px 24px"
+    }
+  }).showToast();
+};
+
+// Listener de Enter movido fuera del click handler
+document.getElementById("pinInput").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") document.getElementById("pinBtn").click();
+});
+
+document.getElementById("pinBtn").onclick = async () => {
+  const pin = document.getElementById("pinInput").value.trim();
+
+  if (!pin) return notify("Ingresá tu PIN", "error");
+
+  try {
+    const res = await fetch(window.SITE_CONFIG.api.authUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pin })
+    });
+
+    if (res.ok) {
+      const { token } = await res.json();
+      sessionStorage.setItem('adminToken', token);
+      document.getElementById("pinOverlay").style.display = "none";
+      notify("Identidad Verificada");
+      init();
+    } else {
+      notify("PIN No Válido", "error");
+    }
+  } catch (e) {
+    notify("Error al conectar con el servidor", "error");
+  }
+};
 
     document.getElementById('themeToggle').onclick = () => {
       const current = document.body.getAttribute('data-theme');
@@ -238,7 +266,9 @@
 
     async function init() {
       try {
-        const res = await fetch(window.SITE_CONFIG.api.baseUrl);
+        const res = await fetch(window.SITE_CONFIG.api.baseUrl, {
+  headers: authHeaders()
+});
         menuData = await res.json();
         render();
       } catch (e) { notify("Error al cargar base de datos", "error"); }
@@ -365,7 +395,7 @@
       btn.disabled = true; btn.textContent = "SINCRONIZANDO...";
       try {
         const res = await fetch(window.SITE_CONFIG.api.baseUrl, {
-          method: "PUT", headers: { "Content-Type": "application/json" },
+          method: "PUT", headers: authHeaders(),
           body: JSON.stringify(menuData)
         });
         if(res.ok) {
@@ -377,7 +407,6 @@
       btn.disabled = false; btn.textContent = "PUBLICAR CAMBIOS";
     };
 
-    init();
   </script>
 </body>
 </html>
