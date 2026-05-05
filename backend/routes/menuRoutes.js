@@ -8,21 +8,27 @@ const {
   uploadImage
 } = require('../controllers/menuController');
 
+const { login } = require('../controllers/authController'); 
+
 const upload = require('../middleware/upload');
+
+const auth = require('../middleware/auth');
 
 
 // =========================================================
 // RUTAS
 // =========================================================
 
-// Subir imagen
-router.post('/upload', upload.single('image'), uploadImage);
+// Auth — ruta pública, sin middleware
+router.post('/auth', login);
 
-// Obtener menú
+// Imagen — considerá agregar auth acá también
+router.post('/upload', auth, upload.single('image'), uploadImage);
+
+// Menú público (sin auth)
 router.get('/menu', getMenu);
 
-// Guardar menú
-router.put('/menu', saveMenu);
-
+// Menú protegido
+router.put('/menu', auth, saveMenu);
 
 module.exports = router;
